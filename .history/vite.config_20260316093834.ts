@@ -1,5 +1,4 @@
 import { fileURLToPath, URL } from 'node:url'
-// 自动导入 Element Plus 相关函数，如：ElMessage, ElNotification
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
