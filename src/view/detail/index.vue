@@ -1,0 +1,465 @@
+<template>
+  <div class="detail-page" v-if="detail">
+    <!-- 面包屑导航 -->
+    <div class="breadcrumb">
+      <el-breadcrumb separator="/">
+        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/category' }">分类</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ detail.name }}</el-breadcrumb-item>
+      </el-breadcrumb>
+    </div>
+
+    <!-- 商品信息区域 -->
+    <div class="goods-info">
+      <!-- 商品图片区域 -->
+      <div class="image-section">
+        <div class="main-image">
+          <img :src="detail.images[currentIndex]" alt="" />
+        </div>
+        <div class="thumbnails">
+          <div 
+            v-for="(image, index) in detail.images" 
+            :key="index"
+            class="thumbnail-item"
+            :class="{ active: currentIndex === index }"
+            @click="changeimg(index)"
+          >
+            <img :src="image" alt="" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 商品详情区域 -->
+      <div class="detail-section">
+        <!-- 商品名称 -->
+        <h1 class="goods-name">{{ detail.name }}</h1>
+        
+        <!-- 商品描述 -->
+        <p class="goods-desc">{{ detail.desc }}</p>
+        
+        <!-- 商品价格 -->
+        <div class="price-section">
+          <span class="price-label">价格：</span>
+          <span class="price">¥{{ detail.price }}</span>
+        </div>
+        
+        <!-- 商品信息 -->
+        <div class="goods-stats">
+          <span class="stat-item">
+            <i class="el-icon-sell"></i>
+            销量：{{ detail.sales }}
+          </span>
+          <span class="stat-item">
+            <i class="el-icon-chat-line-round"></i>
+            评价：{{ detail.comments }}
+          </span>
+          <span class="stat-item">
+            <i class="el-icon-star-on"></i>
+            收藏：{{ detail.favorites }}
+          </span>
+          <span class="stat-item">
+            <i class="el-icon-s-shop"></i>
+            品牌：{{ detail.brand }}
+          </span>
+        </div>
+        
+        <!-- 购买数量 -->
+        <div class="quantity-section">
+          <span class="quantity-label">数量：</span>
+          <el-input-number v-model="quantity" :min="1" :max="99" size="small" />
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="action-buttons">
+          <el-button type="primary" size="large" class="add-to-cart" @click="addToCart">
+            <i class="el-icon-shopping-cart-full"></i>
+            加入购物车
+          </el-button>
+          <el-button type="danger" size="large" class="buy-now">
+            <i class="el-icon-coin"></i>
+            立即购买
+          </el-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 商品详情标签页 -->
+    <div class="detail-tabs">
+      <el-tabs v-model="activeTab">
+        <el-tab-pane label="商品详情" name="detail">
+          <div class="tab-content">
+            <div v-for="(item, index) in detail.detailImages" :key="index" class="detail-image">
+              <img :src="item" alt="" />
+            </div>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="规格参数" name="specs">
+          <div class="tab-content">
+            <el-table :data="detail.specs" style="width: 100%">
+              <el-table-column prop="name" label="参数名称" width="180" />
+              <el-table-column prop="value" label="参数值" />
+            </el-table>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="用户评价" name="comments">
+          <div class="tab-content">
+            <div v-for="(comment, index) in detail.userComments" :key="index" class="comment-item">
+              <div class="comment-header">
+                <span class="comment-user">{{ comment.user }}</span>
+                <span class="comment-time">{{ comment.time }}</span>
+              </div>
+              <div class="comment-content">{{ comment.content }}</div>
+              <div class="comment-images" v-if="comment.images && comment.images.length > 0">
+                <img v-for="(img, idx) in comment.images" :key="idx" :src="img" alt="" class="comment-img" />
+              </div>
+            </div>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+
+    <!-- 热榜推荐 -->
+    <div class="hot-section">
+      <DetailHot :hotType="1"></DetailHot>
+      <DetailHot :hotType="2"></DetailHot>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ArrowRight } from '@element-plus/icons-vue'
+import { ref, computed, onMounted} from 'vue'
+import DetailHot from './components/DetailHot.vue'
+import { getDetail } from '@/api/detail';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const id = route.params.id;
+
+interface GoodsSpec {
+  name: string;
+  value: string;
+}
+
+interface UserComment {
+  user: string;
+  time: string;
+  content: string;
+  images: string[];
+}
+
+interface GoodsDetail {
+  id: string;
+  name: string;
+  desc: string;
+  price: number;
+  sales: number;
+  comments: number;
+  favorites: number;
+  brand: string;
+  images: string[];
+  detailImages: string[];
+  specs: GoodsSpec[];
+  userComments: UserComment[];
+}
+
+const detail = ref<GoodsDetail | null>(null);
+
+// 当前选中的图片索引
+const currentIndex = ref(0);
+const changeimg = (index: number) => {
+  currentIndex.value = index;
+  // 这里不需要修改数组，因为我们直接在模板中使用 currentIndex 来显示当前图片
+}
+
+
+// 购买数量
+const quantity = ref(1);
+
+// 活跃的标签页
+const activeTab = ref('detail');
+
+// 加入购物车
+const addToCart = () => {
+  // 这里可以实现加入购物车的逻辑
+  console.log('加入购物车:', detail.value?.name, '数量:', quantity.value);
+  // 显示成功提示
+  alert('加入购物车成功！');
+};
+
+onMounted(async () => {
+  try {
+    const response = await getDetail(id);
+    // 模拟数据，实际项目中应该使用 response.data 或 response.result
+    detail.value = {
+      id: id as string,
+      name: '春季新款女士连衣裙 收腰显瘦气质女神范裙子',
+      desc: '2024春季新款女装，收腰设计，显瘦版型，气质女神范，多种颜色可选',
+      price: 299.99,
+      sales: 1234,
+      comments: 567,
+      favorites: 890,
+      brand: 'Rabbit Fashion',
+      images: [
+        'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=women%20dress%20spring%20fashion%20pink&image_size=portrait_4_3',
+        'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=women%20dress%20spring%20fashion%20blue&image_size=portrait_4_3',
+        'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=women%20dress%20spring%20fashion%20white&image_size=portrait_4_3',
+        'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=women%20dress%20spring%20fashion%20black&image_size=portrait_4_3'
+      ],
+      detailImages: [
+        'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=product%20detail%20page%20dress%20material&image_size=landscape_16_9',
+        'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=product%20detail%20page%20dress%20size%20chart&image_size=landscape_16_9'
+      ],
+      specs: [
+        { name: '品牌', value: 'Rabbit Fashion' },
+        { name: '材质', value: ' polyester 95%, spandex 5%' },
+        { name: '风格', value: '时尚、休闲' },
+        { name: '适用季节', value: '春季、秋季' },
+        { name: '尺码', value: 'S、M、L、XL' },
+        { name: '颜色', value: '粉色、蓝色、白色、黑色' }
+      ],
+      userComments: [
+        {
+          user: '用户123',
+          time: '2024-03-20',
+          content: '裙子质量很好，版型显瘦，颜色也很正，非常喜欢！',
+          images: []
+        },
+        {
+          user: '时尚达人',
+          time: '2024-03-18',
+          content: '面料舒适，做工精细，物流也很快，值得购买！',
+          images: [
+            'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20review%20dress%20photo&image_size=portrait_4_3'
+          ]
+        }
+      ]
+    };
+    console.log(detail.value);
+  } catch (error) {
+    console.error('Failed to get detail:', error);
+  }
+});
+</script>
+
+<style scoped lang="scss">
+.detail-page {
+  width: 1200px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.breadcrumb {
+  margin-bottom: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.goods-info {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 40px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.image-section {
+  width: 500px;
+  
+  .main-image {
+    width: 100%;
+    height: 500px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+  
+  .thumbnails {
+    display: flex;
+    gap: 10px;
+    
+    .thumbnail-item {
+      width: 80px;
+      height: 80px;
+      overflow: hidden;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      
+      &.active {
+        border-color: #ff6b00;
+      }
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+}
+
+.detail-section {
+  flex: 1;
+  
+  .goods-name {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 10px 0;
+    line-height: 1.3;
+  }
+  
+  .goods-desc {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 20px 0;
+    line-height: 1.4;
+  }
+  
+  .price-section {
+    margin-bottom: 20px;
+    
+    .price-label {
+      font-size: 16px;
+      color: #666;
+      margin-right: 10px;
+    }
+    
+    .price {
+      font-size: 28px;
+      font-weight: 600;
+      color: #ff6b00;
+    }
+  }
+  
+  .goods-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding: 15px 0;
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+    
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 14px;
+      color: #666;
+      
+      i {
+        color: #ff6b00;
+      }
+    }
+  }
+  
+  .quantity-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    
+    .quantity-label {
+      font-size: 16px;
+      color: #666;
+      margin-right: 20px;
+    }
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 20px;
+    
+    .add-to-cart,
+    .buy-now {
+      flex: 1;
+      height: 48px;
+      font-size: 16px;
+    }
+  }
+}
+
+.detail-tabs {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-bottom: 40px;
+  
+  .el-tabs__header {
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .el-tabs__content {
+    padding: 30px;
+  }
+  
+  .tab-content {
+    .detail-image {
+      margin-bottom: 20px;
+      
+      img {
+        width: 100%;
+        border-radius: 4px;
+      }
+    }
+    
+    .comment-item {
+      padding: 20px 0;
+      border-bottom: 1px solid #f0f0f0;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .comment-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        
+        .comment-user {
+          font-weight: 600;
+          color: #333;
+        }
+        
+        .comment-time {
+          font-size: 12px;
+          color: #999;
+        }
+      }
+      
+      .comment-content {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.5;
+        margin-bottom: 10px;
+      }
+      
+      .comment-images {
+        display: flex;
+        gap: 10px;
+        
+        .comment-img {
+          width: 80px;
+          height: 80px;
+          object-fit: cover;
+          border-radius: 4px;
+        }
+      }
+    }
+  }
+}
+
+.hot-section {
+  margin-top: 40px;
+}
+</style>

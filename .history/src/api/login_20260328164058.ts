@@ -1,0 +1,12 @@
+import http from "@/utils/http";
+
+export function login(data:any) {
+  return http({
+    url:"/login",
+    method:"POST",
+    data:{
+        account:data.usename,
+         password:data.usepassword,
+    }
+  });
+}
