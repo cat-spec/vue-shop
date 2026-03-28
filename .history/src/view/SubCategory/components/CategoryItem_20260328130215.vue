@@ -1,0 +1,24 @@
+<template>
+  <div class="goods-item">
+    <div class="image-container">
+      <img :src="goods.picture" alt="">
+    </div>
+    <p class="name">{{goods.name}}</p>
+    <p class="desc">{{goods.desc}}</p>
+    <p class="price">{{goods.price}}</p>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive, toRefs, onMounted} from 'vue'
+defineProps({
+    goods:{
+        type:Object,
+        default:()=>{}
+    }
+})
+
+</script>
+<style scoped lang="less">
+
+</style>

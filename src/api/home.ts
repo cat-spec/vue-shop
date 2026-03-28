@@ -1,6 +1,6 @@
 import http from '@/utils/http';
 
-export function getBannerAPI(params={}) {
+export function getBannerAPI(params: { distributionSite?: string } = {}) {
   const {distributionSite='1'}=params
   return http({
     url: '/home/banner',
