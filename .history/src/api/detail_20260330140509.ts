@@ -8,9 +8,3 @@ export function getDetail(id:any) {
         },
     });
 }
-
-export function getHotGoodsAPI() {
-    return http({
-        url:"/goods/hot",
-    });
-}

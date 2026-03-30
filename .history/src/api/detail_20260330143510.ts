@@ -9,7 +9,7 @@ export function getDetail(id:any) {
     });
 }
 
-export function getHotGoodsAPI() {
+export function getHotGoods() {
     return http({
         url:"/goods/hot",
     });
