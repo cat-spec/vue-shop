@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import LayoutHeaderUl from './LayoutHeaderUl.vue'
 // import HeaderCart from './HeaderCart.vue'
 import { useCategoryStore } from '@/stores/category'
-import { getCategoryList } from '@/api/layout.ts'
+import { getCategoryList } from '@/api/layout'
 
 let res = ref([])
 onMounted(async () => {
